@@ -1,6 +1,6 @@
 'use client'
-
-
+import { RoomContent } from "./RoomContent"
+import { RoomContext } from "./RoomContext"
 
 interface Room {
     roomId: string
@@ -10,8 +10,8 @@ interface Room {
 export default function Room({ roomId }: Room) {
     // RoomContent has to wait for RoomContext to load
     return (
-        <div>
-            {roomId}
-        </div>
+        <RoomContext roomId={roomId}>
+            <RoomContent />
+        </RoomContext>
     )
 }
