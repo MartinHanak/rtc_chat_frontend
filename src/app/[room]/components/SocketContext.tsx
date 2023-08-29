@@ -61,7 +61,7 @@ export function SocketContextProvider({ children, roomId }: SocketContextProvide
                     ...oldOffers,
                     [fromSocketId]: offer
                 };
-            })
+            });
 
         });
 
