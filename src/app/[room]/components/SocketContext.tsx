@@ -18,10 +18,14 @@ type messageWithSocketId = {
 interface SocketContextValue {
     roomId: string,
     socketRef: MutableRefObject<Socket<ServerToClientEvents, ClientToServerEvents> | null> | null,
-    userIds: string[]
+    userIds: string[],
+    offers: Record<string, RTCSessionDescriptionInit>,
+    answers: Record<string, RTCSessionDescriptionInit>,
+    iceCandidates: Record<string, RTCIceCandidate[]>,
+    messages: messageWithSocketId[]
 }
 
-const SocketContext = createContext<SocketContextValue>({ roomId: '', socketRef: null, userIds: [] });
+const SocketContext = createContext<SocketContextValue>({ roomId: '', socketRef: null, userIds: [], offers: {}, answers: {}, iceCandidates: {}, messages: [] });
 
 export const useSocketContext = () => useContext(SocketContext);
 
@@ -118,7 +122,7 @@ export function SocketContextProvider({ children, roomId }: SocketContextProvide
 
     return (
         <>{connectedUserIds.length > 0 ?
-            <SocketContext.Provider value={{ roomId, socketRef, userIds: connectedUserIds }}>
+            <SocketContext.Provider value={{ roomId, socketRef, userIds: connectedUserIds, offers, answers, iceCandidates, messages }}>
                 {children}
             </SocketContext.Provider>
 
