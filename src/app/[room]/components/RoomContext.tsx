@@ -1,5 +1,6 @@
 import { LocalStreamProvider } from "./LocalStreamContext"
 import { SocketContextProvider } from "./SocketContext"
+import { WebRTCContextProvider } from "./WebRTCContext"
 
 interface RoomContext {
     children: React.ReactNode,
@@ -12,7 +13,9 @@ export function RoomContext({ children, roomId }: RoomContext) {
     return (
         <SocketContextProvider roomId={roomId}>
             <LocalStreamProvider video audio>
-                {children}
+                <WebRTCContextProvider video audio>
+                    {children}
+                </WebRTCContextProvider>
             </LocalStreamProvider>
         </SocketContextProvider>
     )

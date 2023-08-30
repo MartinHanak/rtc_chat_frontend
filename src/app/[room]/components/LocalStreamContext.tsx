@@ -1,7 +1,11 @@
 import { useRef, useState, useContext, createContext, useEffect } from "react";
-import { useSocketContext } from "./SocketContext";
+import { MutableRefObject } from "react";
 
-const LocalStreamContext = createContext({});
+interface LocalStreamContextValue {
+    streamRef: MutableRefObject<MediaStream | null> | null
+}
+
+const LocalStreamContext = createContext<LocalStreamContextValue>({ streamRef: null });
 
 export const useLocalStreamContext = () => useContext(LocalStreamContext);
 
@@ -26,14 +30,13 @@ export function LocalStreamProvider({ children, video, audio }: LocalStreamConte
 
                 // check if stream already set
                 // otherwise issues with double-render react strict mode
-                // because one stream is not cleaned-up and camera does not shut off
                 if (streamRef && streamRef.current) {
                     console.log(`Local stream already set`);
                 } else {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: audio, video: video });
                     streamRef.current = stream;
+                    setStreamReady(true);
                 }
-                setStreamReady(true);
 
             } catch (error) {
                 console.log(error)
@@ -55,7 +58,7 @@ export function LocalStreamProvider({ children, video, audio }: LocalStreamConte
     }, [audio, video]);
 
     return (
-        <LocalStreamContext.Provider value={{}}>
+        <LocalStreamContext.Provider value={{ streamRef }}>
             {children}
         </LocalStreamContext.Provider>
     )
