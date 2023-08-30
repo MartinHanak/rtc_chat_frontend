@@ -1,10 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react";
-import { BACKEND_URL } from "../util/config";
-import { isArrayTypeNode } from "typescript";
-import { validateRoom } from "../util/validateRoom";
+import { useState } from "react";
 import { RoomList } from "./RoomList";
+import { useAvailableRoomsContext } from "./AvailableRoomsContext";
 
 export enum RoomType {
     video = 'video',
@@ -20,52 +18,8 @@ export interface Room {
 
 export function RoomCatalog() {
 
-    const [rooms, setRooms] = useState<Room[]>([]);
-
+    const { rooms } = useAvailableRoomsContext();
     const [selectedRoomType, setSelectedRoomType] = useState<RoomType>(RoomType.video);
-
-    const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-        let controller = new AbortController();
-        const signal = controller.signal;
-        setLoading(true);
-
-        fetch(`http://${BACKEND_URL}/api/room`, { signal })
-            .then((res) => {
-                if (!res.ok) {
-                    throw new Error(`Response was not ok when fetching the rooms.`)
-                }
-
-                return res.json()
-            })
-            .then((jsonData) => {
-
-                if (!Array.isArray(jsonData)) {
-                    throw new Error(`Rooms response is not an array`)
-                }
-
-                let rooms: Room[] = [];
-
-                for (const roomData of jsonData) {
-                    if (!validateRoom(roomData)) {
-                        continue;
-                    } else {
-                        rooms.push(roomData);
-                    }
-                }
-
-                setRooms(rooms);
-            })
-            .catch((err) => console.log(err))
-            .finally(() => setLoading(false));
-
-        return () => {
-            controller.abort();
-        }
-
-    }, [])
-
 
     return (
         <div>
@@ -84,11 +38,8 @@ export function RoomCatalog() {
 
             <button>Create a new room +</button>
 
-            {loading ?
-                <div>Loading Rooms</div>
-                :
-                <RoomList rooms={rooms.filter((room) => room.type === selectedRoomType)} />
-            }
+            <RoomList rooms={rooms.filter((room) => room.type === selectedRoomType)} />
+
 
         </div>
     )
