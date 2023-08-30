@@ -22,7 +22,7 @@ export function WebRTCContextProvider({ children, video, audio }: WebRTCContextP
     const [peerStreamReady, setPeerStreamReady] = useState<string[]>([]);
     const [dataChannelReady, setDataChannelReady] = useState<string[]>([]);
 
-    const { socketRef, userIds } = useSocketContext();
+    const { socketRef, userIds, offers, answers, iceCandidates } = useSocketContext();
 
     const { streamRef: localStreamRef } = useLocalStreamContext();
 
@@ -140,15 +140,18 @@ export function WebRTCContextProvider({ children, video, audio }: WebRTCContextP
         }
 
         // handle call when new user connects
+        // userIds given in insertion order (guaranteed by the server)
+        // only create offers for ids from 'current id' up to the end of the array
+        let startMakingOffers = false;
         for (const userId of userIds) {
             // caller cannot call himself
             if (userId === socketRef?.current?.id) {
+                startMakingOffers = true;
                 continue;
             }
 
-            // last one joined does not send offers
-            // instead he listen for offers and send answers
-            if (userId === userIds[userIds.length - 1]) {
+            // do not send offers to ids joined before you, only ids joined after you
+            if (!startMakingOffers) {
                 continue;
             }
 
@@ -208,10 +211,82 @@ export function WebRTCContextProvider({ children, video, audio }: WebRTCContextP
         }
 
         // react to new offers
+        for (const offerUserId in offers) {
 
-    }, [audio, video, createPeerConnection, localStreamRef, socketRef]);
+            if (!(offerUserId in peerConnectionRef.current)) {
+                console.log(`Reacting to an offer by creating an answer.`);
+                handleOffer(offerUserId, offers[offerUserId]);
+            }
+        }
+
+    }, [offers, audio, video, createPeerConnection, localStreamRef, socketRef]);
 
 
+    // handle received answers
+    useEffect(() => {
+
+        for (const answerUserId in answers) {
+
+            if (!(answerUserId in peerConnectionRef.current)) {
+                console.log(`No connection with socketId: ${answerUserId} found when answer received`);
+                continue;
+            }
+
+            const existingConnection = peerConnectionRef.current[answerUserId];
+
+            if (!existingConnection.remoteDescription) {
+                existingConnection.setRemoteDescription(answers[answerUserId])
+                    .then(() => console.log(`Answer successfully set as remote description.`))
+                    .catch((err) => console.log(err))
+            }
+        }
+
+    }, [answers]);
+
+    // handle incoming ICE candidates
+    useEffect(() => {
+
+        for (const iceCandidateUserId in iceCandidates) {
+
+            if (!(iceCandidateUserId in peerConnectionRef.current)) {
+                console.log(`No connection with socketId: ${iceCandidateUserId} found when ice-candidate received.`)
+                continue;
+            }
+
+            const existingConnection = peerConnectionRef.current[iceCandidateUserId];
+
+            for (const candidate of iceCandidates[iceCandidateUserId]) {
+                const newIceCandidate = new RTCIceCandidate(candidate);
+
+                existingConnection.addIceCandidate(newIceCandidate)
+                    .then(() => console.log(`ICE candidate added successfully`))
+                    .catch((err) => console.log(err))
+            }
+        }
+    }, [iceCandidates])
+
+    // combined WebRTC context cleanup
+    useEffect(() => {
+        const oldStreamRef = peerStreamRef;
+        const oldConnectionRef = peerConnectionRef;
+        return () => {
+            console.log('WebRTC context cleanup');
+
+            for (const streamUserId in oldStreamRef.current) {
+                oldStreamRef.current[streamUserId]
+                    .getTracks()
+                    .forEach((track) => track.stop())
+            }
+
+            for (const connectionUserId in oldConnectionRef.current) {
+                let connection = oldConnectionRef.current[connectionUserId]
+                connection.ontrack = null;
+                connection.onicecandidate = null;
+                connection.close()
+            }
+            oldConnectionRef.current = {};
+        }
+    }, []);
 
     return (
         <WebRTCContext.Provider value={{}}>

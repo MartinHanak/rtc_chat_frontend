@@ -57,9 +57,11 @@ export function LocalStreamProvider({ children, video, audio }: LocalStreamConte
 
     }, [audio, video]);
 
+
+    // WebRTC context needs data from the local stream
     return (
         <LocalStreamContext.Provider value={{ streamRef }}>
-            {children}
+            {streamReady ? children : <div> Loading stream...</div>}
         </LocalStreamContext.Provider>
     )
 }
