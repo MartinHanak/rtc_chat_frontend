@@ -1,5 +1,6 @@
-"use client"
+"use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { RoomList } from "./RoomList";
 import { useAvailableRoomsContext } from "./AvailableRoomsContext";
@@ -13,7 +14,7 @@ export enum RoomType {
 export interface Room {
     name: string,
     type: RoomType,
-    createdAt: number
+    createdAt: number;
 }
 
 export function RoomCatalog() {
@@ -36,11 +37,11 @@ export function RoomCatalog() {
                 </button>
             </div>
 
-            <button>Create a new room +</button>
+            <Link href="/room">Create a new room +</Link>
 
             <RoomList rooms={rooms.filter((room) => room.type === selectedRoomType)} />
 
 
         </div>
-    )
+    );
 }

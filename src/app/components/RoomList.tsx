@@ -1,7 +1,7 @@
-import { Room } from "./RoomCatalog"
+import { Room } from "./RoomCatalog";
 
 interface RoomList {
-    rooms: Room[]
+    rooms: Room[];
 }
 
 export function RoomList({ rooms }: RoomList) {
@@ -12,8 +12,8 @@ export function RoomList({ rooms }: RoomList) {
                     <div key={index}>
                         {room.name}
                     </div>
-                )
+                );
             })}
         </>
-    )
+    );
 }
