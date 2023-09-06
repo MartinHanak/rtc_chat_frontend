@@ -5,12 +5,13 @@ import {
   ServerToClientEvents,
 } from "../types/socketTypes";
 
-export function initializeSocket(roomId: string) {
+export function initializeSocket(roomId: string, username: string) {
   const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(
     `${BACKEND_URL}`,
     {
       extraHeaders: {
         room: `${roomId}`,
+        username: username,
       },
     }
   );

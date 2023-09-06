@@ -2,30 +2,31 @@ import { Socket } from "socket.io-client";
 import { useEffect, useRef, useState, useContext, createContext } from "react";
 import { MutableRefObject } from "react";
 import { initializeSocket } from "@/app/util/initializeSocket";
-import { ServerToClientEvents, ClientToServerEvents } from "@/app/types/socketTypes";
+import { ServerToClientEvents, ClientToServerEvents, userInfo } from "@/app/types/socketTypes";
+import { useLocalSettingsContext } from "./LocalSettingsContext";
 
 interface SocketContextProvider {
     children: React.ReactNode,
-    roomId: string
+    roomId: string;
 }
 
 type messageWithSocketId = {
     fromSocketId: string,
     message: string,
-    time: number
-}
+    time: number;
+};
 
 interface SocketContextValue {
     roomId: string,
     socketRef: MutableRefObject<Socket<ServerToClientEvents, ClientToServerEvents> | null> | null,
-    userIds: string[],
+    users: userInfo[],
     offers: Record<string, RTCSessionDescriptionInit>,
     answers: Record<string, RTCSessionDescriptionInit>,
     iceCandidates: Record<string, RTCIceCandidate[]>,
-    messages: messageWithSocketId[]
+    messages: messageWithSocketId[];
 }
 
-const SocketContext = createContext<SocketContextValue>({ roomId: '', socketRef: null, userIds: [], offers: {}, answers: {}, iceCandidates: {}, messages: [] });
+const SocketContext = createContext<SocketContextValue>({ roomId: '', socketRef: null, users: [], offers: {}, answers: {}, iceCandidates: {}, messages: [] });
 
 export const useSocketContext = () => useContext(SocketContext);
 
@@ -34,7 +35,7 @@ export function SocketContextProvider({ children, roomId }: SocketContextProvide
     const socketRef = useRef<Socket<ServerToClientEvents, ClientToServerEvents> | null>(null);
 
     // websocket state
-    const [connectedUserIds, setConnectedUserIds] = useState<string[]>([]);
+    const [connectedUsers, setConnectedUsers] = useState<userInfo[]>([]);
 
     // state for WebRTC offers, answers, ICE-candidates
     const [offers, setOffers] = useState<Record<string, RTCSessionDescriptionInit>>({});
@@ -44,16 +45,19 @@ export function SocketContextProvider({ children, roomId }: SocketContextProvide
     // chat
     const [messages, setMessages] = useState<messageWithSocketId[]>([]);
 
+    // username
+    const { username } = useLocalSettingsContext();
+
 
     // only one socket is active for one room
     useEffect(() => {
 
-        socketRef.current = initializeSocket(roomId);
+        socketRef.current = initializeSocket(roomId, username);
 
         // room events
-        socketRef.current.on("room-users", (userIds) => {
-            setConnectedUserIds((previous) => userIds)
-        })
+        socketRef.current.on("room-users", (users: userInfo[]) => {
+            setConnectedUsers(users);
+        });
 
         // webRTC events
         socketRef.current.on("offer", (fromSocketId: string, toSocketId: string, offer) => {
@@ -76,7 +80,7 @@ export function SocketContextProvider({ children, roomId }: SocketContextProvide
                 return {
                     ...oldAnswers,
                     [fromSocketId]: answer
-                }
+                };
             });
 
         });
@@ -89,25 +93,25 @@ export function SocketContextProvider({ children, roomId }: SocketContextProvide
                     return {
                         ...oldCandidates,
                         [fromSocketId]: [candidate]
-                    }
+                    };
                 } else {
                     return {
                         ...oldCandidates,
                         [fromSocketId]: [...oldCandidates[fromSocketId], candidate]
-                    }
+                    };
                 }
             });
 
-        })
+        });
 
         // chat events
         socketRef.current.on("message", (fromSocketId: string, message: string, time) => {
 
             setMessages((previous) => {
-                return [...previous, { fromSocketId, message, time }]
+                return [...previous, { fromSocketId, message, time }];
             });
 
-        })
+        });
 
 
         // socket cleanup
@@ -115,14 +119,14 @@ export function SocketContextProvider({ children, roomId }: SocketContextProvide
             console.log(`SOCKET DISCONNECTING`);
 
             socketRef.current?.disconnect();
-        }
+        };
 
 
     }, [roomId]);
 
     return (
-        <>{connectedUserIds.length > 0 ?
-            <SocketContext.Provider value={{ roomId, socketRef, userIds: connectedUserIds, offers, answers, iceCandidates, messages }}>
+        <>{connectedUsers.length > 0 ?
+            <SocketContext.Provider value={{ roomId, socketRef, users: connectedUsers, offers, answers, iceCandidates, messages }}>
                 {children}
             </SocketContext.Provider>
 
@@ -131,6 +135,6 @@ export function SocketContextProvider({ children, roomId }: SocketContextProvide
                 Socket connecting ....
             </div>
         }</>
-    )
+    );
 
 }

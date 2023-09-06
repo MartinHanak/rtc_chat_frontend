@@ -1,16 +1,17 @@
-import { useSocketContext } from "./SocketContext"
+import { userInfo } from "@/app/types/socketTypes";
+import { useSocketContext } from "./SocketContext";
 
 
 export function RoomContent() {
-    const { userIds } = useSocketContext();
+    const { users } = useSocketContext();
 
     return (
         <div>
             Connected users:
 
             <ul>
-                {userIds.map((id) => <li key={id}>{id}</li>)}
+                {users.map((user: userInfo) => <li key={user.socketId}>{user.username}</li>)}
             </ul>
         </div>
-    )
+    );
 }

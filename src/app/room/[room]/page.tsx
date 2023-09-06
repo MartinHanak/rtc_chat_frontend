@@ -1,16 +1,20 @@
-import { rooms } from "../page"
-import Room from "./components/Room"
+"use client";
+import { useAvailableRoomsContext } from "@/app/components/AvailableRoomsContext";
+import Room from "./components/Room";
 
-export default function Page({ params }: { params: { room: string } }) {
+export default function Page({ params }: { params: { room: string; }; }) {
+
+    const decodedName = decodeURIComponent(params.room);
+
+    const { rooms } = useAvailableRoomsContext();
+
     return (
-        rooms
-            .filter((room) => (room.id === decodeURIComponent(params.room)))
-            .length > 0 ?
+        rooms.filter((room) => (room.name === decodedName)).length > 0 ?
             <div>
-                Welcome to room {decodeURIComponent(params.room)}
-                <Room roomId={params.room} />
+                Welcome to room {decodedName}
+                <Room roomId={decodedName} />
             </div>
             :
-            <div>Room {decodeURIComponent(params.room)} does not exist.</div>
-    )
+            <div>Room {decodedName} does not exist.</div>
+    );
 }

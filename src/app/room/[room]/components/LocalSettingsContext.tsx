@@ -1,12 +1,17 @@
 import { createContext, useContext, useState } from "react";
 import { UsernameInput } from "./UsernameInput";
 
-const LocalSettingsContext = createContext({});
+
+interface LocalSettingsContextValue {
+    username: string;
+}
+
+const LocalSettingsContext = createContext<LocalSettingsContextValue>({ username: '' });
 
 export const useLocalSettingsContext = () => useContext(LocalSettingsContext);
 
 interface LocalSettingsContext {
-    children: React.ReactNode
+    children: React.ReactNode;
 }
 
 export function LocalSettingsProvider({ children }: LocalSettingsContext) {
@@ -18,19 +23,19 @@ export function LocalSettingsProvider({ children }: LocalSettingsContext) {
         const storedUsername = localStorage.getItem('username');
 
         if (!storedUsername) {
-            return ""
+            return "";
         } else {
-            return storedUsername
+            return storedUsername;
         }
     }
 
     function setAndStoreUsername(input: string) {
-        localStorage.setItem('username', input)
-        setUsername(input)
+        localStorage.setItem('username', input);
+        setUsername(input);
     }
 
     return (
-        <LocalSettingsContext.Provider value={{}}>
+        <LocalSettingsContext.Provider value={{ username }}>
             {
                 username === "" ?
                     <UsernameInput setUsername={setAndStoreUsername} />
@@ -38,5 +43,5 @@ export function LocalSettingsProvider({ children }: LocalSettingsContext) {
                     children
             }
         </LocalSettingsContext.Provider>
-    )
+    );
 }

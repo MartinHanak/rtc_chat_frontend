@@ -10,7 +10,7 @@ export const useWebRTCContext = () => useContext(WebRTCContext);
 interface WebRTCContextProvider {
     children: React.ReactNode,
     video: boolean,
-    audio: boolean
+    audio: boolean;
 }
 
 export function WebRTCContextProvider({ children, video, audio }: WebRTCContextProvider) {
@@ -22,7 +22,7 @@ export function WebRTCContextProvider({ children, video, audio }: WebRTCContextP
     const [peerStreamReady, setPeerStreamReady] = useState<string[]>([]);
     const [dataChannelReady, setDataChannelReady] = useState<string[]>([]);
 
-    const { socketRef, userIds, offers, answers, iceCandidates } = useSocketContext();
+    const { socketRef, users, offers, answers, iceCandidates } = useSocketContext();
 
     const { streamRef: localStreamRef } = useLocalStreamContext();
 
@@ -68,11 +68,11 @@ export function WebRTCContextProvider({ children, video, audio }: WebRTCContextP
                 if (socketRef && socketRef.current) {
                     socketRef.current.emit("ice-candidate", socketRef.current.id, toSocketId, event.candidate);
                 } else {
-                    console.log(`Socket not ready when ice-candidate event triggered.`)
+                    console.log(`Socket not ready when ice-candidate event triggered.`);
                 }
 
             }
-        }
+        };
 
         connection.ontrack = (event: RTCTrackEvent) => {
 
@@ -85,7 +85,7 @@ export function WebRTCContextProvider({ children, video, audio }: WebRTCContextP
                 setPeerStreamReady((previous) => [...previous, toSocketId]);
             }
 
-        }
+        };
 
         return connection;
     }, [socketRef]);
@@ -115,7 +115,7 @@ export function WebRTCContextProvider({ children, video, audio }: WebRTCContextP
                     );
                 }
             } else {
-                console.log(`Local stream not ready while initiating WebRTC call.`)
+                console.log(`Local stream not ready while initiating WebRTC call.`);
                 return;
             }
 
@@ -127,25 +127,25 @@ export function WebRTCContextProvider({ children, video, audio }: WebRTCContextP
                     connection.setLocalDescription(offer);
 
                     if (socketRef && socketRef.current) {
-                        console.log('Sending WebRTC offer')
-                        socketRef.current.emit('offer', socketRef.current.id, toSocketId, offer)
+                        console.log('Sending WebRTC offer');
+                        socketRef.current.emit('offer', socketRef.current.id, toSocketId, offer);
                     } else {
-                        throw new Error(`Socket not ready while emitting offer.`)
+                        throw new Error(`Socket not ready while emitting offer.`);
                     }
 
                 } catch (error) {
                     console.log(error);
                 }
             })();
-        }
+        };
 
         // handle call when new user connects
         // userIds given in insertion order (guaranteed by the server)
         // only create offers for ids from 'current id' up to the end of the array
         let startMakingOffers = false;
-        for (const userId of userIds) {
+        for (const user of users) {
             // caller cannot call himself
-            if (userId === socketRef?.current?.id) {
+            if (user.socketId === socketRef?.current?.id) {
                 startMakingOffers = true;
                 continue;
             }
@@ -156,13 +156,13 @@ export function WebRTCContextProvider({ children, video, audio }: WebRTCContextP
             }
 
             // new call only if connection not already created
-            if (!(userId in peerConnectionRef.current)) {
-                console.log(`Making WebRTC call from ${socketRef?.current?.id} to ${userId}.`)
-                handleCall(userId);
+            if (!(user.socketId in peerConnectionRef.current)) {
+                console.log(`Making WebRTC call from ${socketRef?.current?.id} to ${user.socketId}.`);
+                handleCall(user.socketId);
             }
         }
 
-    }, [userIds, audio, video, createPeerConnection, localStreamRef, socketRef]);
+    }, [users, audio, video, createPeerConnection, localStreamRef, socketRef]);
 
 
     // handle received offers by sending an answer
@@ -186,7 +186,7 @@ export function WebRTCContextProvider({ children, video, audio }: WebRTCContextP
                     );
                 }
             } else {
-                console.log(`Local stream not ready while initiating WebRTC call.`)
+                console.log(`Local stream not ready while initiating WebRTC call.`);
                 return;
             }
 
@@ -199,16 +199,16 @@ export function WebRTCContextProvider({ children, video, audio }: WebRTCContextP
                     connection.setLocalDescription(answer);
 
                     if (socketRef && socketRef.current) {
-                        console.log(`Sending WebRTC answer`)
-                        socketRef.current.emit("answer", socketRef.current.id, fromSocketId, answer)
+                        console.log(`Sending WebRTC answer`);
+                        socketRef.current.emit("answer", socketRef.current.id, fromSocketId, answer);
                     } else {
-                        throw new Error(`Socket not ready when sending WebRTC answer`)
+                        throw new Error(`Socket not ready when sending WebRTC answer`);
                     }
                 } catch (error) {
-                    console.log(error)
+                    console.log(error);
                 }
             })();
-        }
+        };
 
         // react to new offers
         for (const offerUserId in offers) {
@@ -237,7 +237,7 @@ export function WebRTCContextProvider({ children, video, audio }: WebRTCContextP
             if (!existingConnection.remoteDescription) {
                 existingConnection.setRemoteDescription(answers[answerUserId])
                     .then(() => console.log(`Answer successfully set as remote description.`))
-                    .catch((err) => console.log(err))
+                    .catch((err) => console.log(err));
             }
         }
 
@@ -249,7 +249,7 @@ export function WebRTCContextProvider({ children, video, audio }: WebRTCContextP
         for (const iceCandidateUserId in iceCandidates) {
 
             if (!(iceCandidateUserId in peerConnectionRef.current)) {
-                console.log(`No connection with socketId: ${iceCandidateUserId} found when ice-candidate received.`)
+                console.log(`No connection with socketId: ${iceCandidateUserId} found when ice-candidate received.`);
                 continue;
             }
 
@@ -260,10 +260,10 @@ export function WebRTCContextProvider({ children, video, audio }: WebRTCContextP
 
                 existingConnection.addIceCandidate(newIceCandidate)
                     .then(() => console.log(`ICE candidate added successfully`))
-                    .catch((err) => console.log(err))
+                    .catch((err) => console.log(err));
             }
         }
-    }, [iceCandidates])
+    }, [iceCandidates]);
 
     // combined WebRTC context cleanup
     useEffect(() => {
@@ -275,22 +275,22 @@ export function WebRTCContextProvider({ children, video, audio }: WebRTCContextP
             for (const streamUserId in oldStreamRef.current) {
                 oldStreamRef.current[streamUserId]
                     .getTracks()
-                    .forEach((track) => track.stop())
+                    .forEach((track) => track.stop());
             }
 
             for (const connectionUserId in oldConnectionRef.current) {
-                let connection = oldConnectionRef.current[connectionUserId]
+                let connection = oldConnectionRef.current[connectionUserId];
                 connection.ontrack = null;
                 connection.onicecandidate = null;
-                connection.close()
+                connection.close();
             }
             oldConnectionRef.current = {};
-        }
+        };
     }, []);
 
     return (
         <WebRTCContext.Provider value={{}}>
             {children}
         </WebRTCContext.Provider>
-    )
+    );
 }
