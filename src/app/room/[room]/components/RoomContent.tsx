@@ -3,6 +3,7 @@ import { useSocketContext } from "./SocketContext";
 import { useLocalStreamContext } from "./LocalStreamContext";
 import { Video } from "./Video";
 import { PeerStreams } from "./PeerStreams";
+import { AudioVisual } from "./AudioVisual";
 
 
 export function RoomContent() {
@@ -20,7 +21,10 @@ export function RoomContent() {
             </ul>
 
             {/* Local Stream */}
-            {streamRef && streamRef.current && <Video stream={streamRef.current} />}
+            {streamRef && streamRef.current && <>
+                <AudioVisual stream={streamRef.current} />
+                <Video stream={streamRef.current} />
+            </>}
 
             {/* Peer Streams */}
             <PeerStreams />

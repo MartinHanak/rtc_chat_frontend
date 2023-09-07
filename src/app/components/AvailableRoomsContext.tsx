@@ -5,11 +5,14 @@ import { Room } from "./RoomCatalog";
 import { BACKEND_URL } from "../util/config";
 import { validateRoom } from "../util/validateRoom";
 
+type AvailableRoomsContextStatus = 'loading' | 'listening' | 'error';
+
 interface AvailableRoomsContextValue {
     rooms: Room[];
+    status: AvailableRoomsContextStatus;
 }
 
-const AvailableRoomsContext = createContext<AvailableRoomsContextValue>({ rooms: [] });
+const AvailableRoomsContext = createContext<AvailableRoomsContextValue>({ rooms: [], status: 'loading' });
 
 export const useAvailableRoomsContext = () => useContext(AvailableRoomsContext);
 
@@ -20,8 +23,8 @@ interface AvailableRoomsContextProvider {
 export function AvailableRoomsContextProvider({ children }: AvailableRoomsContextProvider) {
 
     const EventSourceRef = useRef<EventSource | null>(null);
-
     const [rooms, setRooms] = useState<Room[]>([]);
+    const [status, setStatus] = useState<AvailableRoomsContextStatus>('loading');
 
     useEffect(() => {
 
@@ -29,6 +32,7 @@ export function AvailableRoomsContextProvider({ children }: AvailableRoomsContex
 
         EventSourceRef.current.onopen = (e) => {
             console.log(`EventSource opened`);
+            setStatus('listening');
         };
 
         EventSourceRef.current.onmessage = (e) => {
@@ -55,6 +59,7 @@ export function AvailableRoomsContextProvider({ children }: AvailableRoomsContex
 
         EventSourceRef.current.onerror = (e) => {
             console.log(`Error occurred while attempting to connect the EventSource.`);
+            setStatus('error');
         };
 
         return () => {
@@ -65,7 +70,7 @@ export function AvailableRoomsContextProvider({ children }: AvailableRoomsContex
     }, []);
 
     return (
-        <AvailableRoomsContext.Provider value={{ rooms }}>
+        <AvailableRoomsContext.Provider value={{ rooms, status }}>
             {children}
         </AvailableRoomsContext.Provider>
     );
