@@ -1,9 +1,17 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, MutableRefObject } from "react";
 import { useSocketContext } from "./SocketContext";
 import { ICE_SERVERS } from "@/app/util/config";
 import { useLocalStreamContext } from "./LocalStreamContext";
 
-const WebRTCContext = createContext({});
+interface WebRTCContextValue {
+    connections: MutableRefObject<Record<string, RTCPeerConnection>> | null,
+    streams: MutableRefObject<Record<string, MediaStream>> | null,
+    peerStreamReady: string[],
+    dataChannels: MutableRefObject<Record<string, RTCDataChannel>> | null,
+    dataChannelReady: string[],
+}
+
+const WebRTCContext = createContext<WebRTCContextValue>({ connections: null, streams: null, dataChannels: null, peerStreamReady: [], dataChannelReady: [] });
 
 export const useWebRTCContext = () => useContext(WebRTCContext);
 
@@ -289,7 +297,7 @@ export function WebRTCContextProvider({ children, video, audio }: WebRTCContextP
     }, []);
 
     return (
-        <WebRTCContext.Provider value={{}}>
+        <WebRTCContext.Provider value={{ connections: peerConnectionRef, streams: peerStreamRef, dataChannels: dataChannelRef, peerStreamReady, dataChannelReady }}>
             {children}
         </WebRTCContext.Provider>
     );

@@ -2,6 +2,7 @@ import { userInfo } from "@/app/types/socketTypes";
 import { useSocketContext } from "./SocketContext";
 import { useLocalStreamContext } from "./LocalStreamContext";
 import { Video } from "./Video";
+import { PeerStreams } from "./PeerStreams";
 
 
 export function RoomContent() {
@@ -20,6 +21,9 @@ export function RoomContent() {
 
             {/* Local Stream */}
             {streamRef && streamRef.current && <Video stream={streamRef.current} />}
+
+            {/* Peer Streams */}
+            <PeerStreams />
         </div>
     );
 }
