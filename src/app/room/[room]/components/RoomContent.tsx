@@ -5,6 +5,8 @@ import { Video } from "./Video";
 import { PeerStreams } from "./PeerStreams";
 import { AudioVisual } from "./AudioVisual";
 import { TextChat } from "./TextChat";
+import { AudioWaveVisual } from "./AudioWaveVisual";
+import { AudioTimeVisual } from "./AudioTimeVisual";
 
 
 export function RoomContent() {
@@ -20,6 +22,10 @@ export function RoomContent() {
             <ul>
                 {users.map((user: userInfo) => <li key={user.socketId}>{user.username}</li>)}
             </ul>
+
+            {streamRef && streamRef.current && < AudioTimeVisual stream={streamRef.current} />}
+
+            < AudioWaveVisual />
 
             <TextChat />
 
