@@ -4,6 +4,7 @@ import { useLocalStreamContext } from "./LocalStreamContext";
 import { Video } from "./Video";
 import { PeerStreams } from "./PeerStreams";
 import { AudioVisual } from "./AudioVisual";
+import { TextChat } from "./TextChat";
 
 
 export function RoomContent() {
@@ -19,6 +20,8 @@ export function RoomContent() {
             <ul>
                 {users.map((user: userInfo) => <li key={user.socketId}>{user.username}</li>)}
             </ul>
+
+            <TextChat />
 
             {/* Local Stream */}
             {streamRef && streamRef.current && <>

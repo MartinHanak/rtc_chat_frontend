@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Room } from "./RoomCatalog";
 
 interface RoomList {
@@ -10,7 +11,9 @@ export function RoomList({ rooms }: RoomList) {
             {rooms.map((room, index) => {
                 return (
                     <div key={index}>
-                        {room.name}
+                        <Link href={`/room/${encodeURIComponent(room.name)}`} >
+                            {room.name}
+                        </Link>
                     </div>
                 );
             })}

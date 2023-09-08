@@ -33,7 +33,8 @@ export function AudioVisual({ stream }: AudioVisual) {
                 height={75}
                 fftSize={512}
                 maxDecibels={-40}
-                minDecibels={-120}
+                minDecibels={-100}
+                smoothingTimeConstant={0.4}
             />}
         </div>
     );

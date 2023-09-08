@@ -12,6 +12,7 @@ interface SocketContextProvider {
 
 type messageWithSocketId = {
     fromSocketId: string,
+    username: string,
     message: string,
     time: number;
 };
@@ -51,11 +52,13 @@ export function SocketContextProvider({ children, roomId }: SocketContextProvide
 
     // only one socket is active for one room
     useEffect(() => {
-
+        console.log(`Initilizing the socket for the room ${roomId} with the username ${username}`);
         socketRef.current = initializeSocket(roomId, username);
+
 
         // room events
         socketRef.current.on("room-users", (users: userInfo[]) => {
+            console.log(users);
             setConnectedUsers(users);
         });
 
@@ -104,15 +107,6 @@ export function SocketContextProvider({ children, roomId }: SocketContextProvide
 
         });
 
-        // chat events
-        socketRef.current.on("message", (fromSocketId: string, message: string, time) => {
-
-            setMessages((previous) => {
-                return [...previous, { fromSocketId, message, time }];
-            });
-
-        });
-
 
         // socket cleanup
         return () => {
@@ -122,7 +116,48 @@ export function SocketContextProvider({ children, roomId }: SocketContextProvide
         };
 
 
-    }, [roomId]);
+    }, [roomId, username]);
+
+    // chat events separate: depend on connectedUsers state
+    // changes when new users are connected
+    // but socket connection should stay the same
+    useEffect(() => {
+        if (!socketRef || !socketRef.current) {
+            return;
+        }
+
+        const socketIdToUsername = new Map<string, string>();
+
+        connectedUsers.forEach((userInfo) => {
+            socketIdToUsername.set(userInfo.socketId, userInfo.username);
+        });
+
+        // chat events
+        socketRef.current.on("message", (fromSocketId: string, message: string, time) => {
+
+            const fromUsername = socketIdToUsername.get(fromSocketId);
+
+            if (fromUsername) {
+                setMessages((previous) => [...previous,
+                {
+                    fromSocketId,
+                    username: fromUsername,
+                    message,
+                    time
+                }]);
+            } else {
+                console.log(`No username found for the socketId ${fromSocketId}`);
+            }
+
+
+        });
+
+        return () => {
+            // remove listeners for old connectedUsers list
+            socketRef.current?.removeAllListeners('message');
+        };
+
+    }, [connectedUsers]);
 
     return (
         <>{connectedUsers.length > 0 ?

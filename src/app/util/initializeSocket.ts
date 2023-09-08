@@ -10,7 +10,7 @@ export function initializeSocket(roomId: string, username: string) {
     `${BACKEND_URL}`,
     {
       extraHeaders: {
-        room: `${roomId}`,
+        room: `${encodeURIComponent(roomId)}`,
         username: username,
       },
     }
