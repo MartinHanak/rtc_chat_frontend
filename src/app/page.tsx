@@ -1,6 +1,4 @@
-import Link from "next/link"
-import { RoomCatalog } from "./components/RoomCatalog"
-import { HomePageContent } from "./components/HomePageContent"
+import { HomePageContent } from "./components/HomePageContent";
 
 
 export default function Home() {
@@ -10,5 +8,5 @@ export default function Home() {
     <main className="">
       <HomePageContent />
     </main>
-  )
+  );
 }

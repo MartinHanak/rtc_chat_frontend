@@ -1,10 +1,10 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import Link from 'next/link';
+
+import ThemeRegistry from './components/Theme/ThemeRegistry';
 import { AvailableRoomsContextProvider } from './components/AvailableRoomsContext';
 
-const inter = Inter({ subsets: ['latin'] });
+import { Container } from '@mui/material';
 
 export const metadata: Metadata = {
   title: 'RTC app',
@@ -18,16 +18,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <AvailableRoomsContextProvider>
-        <body className={inter.className}>
-          <h1>Rooms</h1>
-          <div>
-            <Link href={'/'}>Go Back</Link>
-          </div>
+      <body>
+        <ThemeRegistry>
+          <AvailableRoomsContextProvider>
 
-          {children}
-        </body>
-      </AvailableRoomsContextProvider>
+            <Container>
+              {children}
+            </Container>
+
+          </AvailableRoomsContextProvider>
+        </ThemeRegistry>
+      </body>
     </html>
   );
 }
